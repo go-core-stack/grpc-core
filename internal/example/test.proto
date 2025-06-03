@@ -1,0 +1,36 @@
+// Copyright © 2025 Prabhjot Singh Sethi, All Rights reserved
+// Author: Prabhjot Singh Sethi <prabhjot.sethi@gmail.com>
+
+syntax = "proto3";
+
+package example;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/Prabhjot-Sethi/grpc-core/internal/example";
+
+service HelloWorld {
+  // sample post request
+  rpc PostObject(PostRequest) returns (PostResponse) {
+    option (google.api.http) = {
+      post: "/v1/object/{name}"
+      body: "*"
+    };
+  }
+}
+
+message PostRequest {
+  // name of the object
+  string name = 1;
+
+  // description of the object
+  string desc = 2;
+}
+
+message PostResponse {
+  // name of the object
+  string name = 1;
+
+  // description of the object
+  string desc = 2;
+}
