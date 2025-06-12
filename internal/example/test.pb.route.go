@@ -8,7 +8,13 @@ import "github.com/go-core-stack/auth/model"
 var RoutesHelloWorld = []*model.Route{}
 
 func init() {
+	var route *model.Route
 
-	RoutesHelloWorld = append(RoutesHelloWorld, model.NewRoute("/v1/object/{name}", "POST"))
-
+	// Adding Route information for PostObject
+	route = model.NewRoute("/v1/object/{name}", "POST")
+	route.Resource = "object"
+	route.Scopes = append(route.Scopes, "abc")
+	route.Scopes = append(route.Scopes, "def")
+	route.Verb = "create"
+	RoutesHelloWorld = append(RoutesHelloWorld, route)
 }

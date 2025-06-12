@@ -10,6 +10,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
 
+	myoptions "github.com/go-core-stack/grpc-core/coreapis/api"
 	"github.com/go-core-stack/grpc-core/internal/httprule"
 )
 
@@ -39,6 +40,11 @@ func (r *Registry) loadServices(file *File) error {
 				grpclog.Errorf("Failed to extract HttpRule from %s.%s: %v", svc.GetName(), md.GetName(), err)
 				return err
 			}
+			role, err := extractRoleOptions(md)
+			if err != nil {
+				grpclog.Errorf("Failed to extract HttpRule from %s.%s: %v", svc.GetName(), md.GetName(), err)
+				return err
+			}
 			optsList := r.LookupExternalHTTPRules((&Method{Service: svc, MethodDescriptorProto: md}).FQMN())
 			if opts != nil {
 				optsList = append(optsList, opts)
@@ -61,7 +67,7 @@ func (r *Registry) loadServices(file *File) error {
 					}
 				}
 			}
-			meth, err := r.newMethod(svc, md, optsList)
+			meth, err := r.newMethod(svc, md, optsList, role)
 			if err != nil {
 				return err
 			}
@@ -80,7 +86,7 @@ func (r *Registry) loadServices(file *File) error {
 	return nil
 }
 
-func (r *Registry) newMethod(svc *Service, md *descriptorpb.MethodDescriptorProto, optsList []*options.HttpRule) (*Method, error) {
+func (r *Registry) newMethod(svc *Service, md *descriptorpb.MethodDescriptorProto, optsList []*options.HttpRule, role *myoptions.Role) (*Method, error) {
 	requestType, err := r.LookupMsg(svc.File.GetPackage(), md.GetInputType())
 	if err != nil {
 		return nil, err
@@ -94,6 +100,14 @@ func (r *Registry) newMethod(svc *Service, md *descriptorpb.MethodDescriptorProt
 		MethodDescriptorProto: md,
 		RequestType:           requestType,
 		ResponseType:          responseType,
+	}
+
+	if role != nil {
+		meth.Role = &Role{
+			Resource: role.Resource,
+			Scopes:   role.Scope,
+			Verb:     role.Verb,
+		}
 	}
 
 	newBinding := func(opts *options.HttpRule, idx int) (*Binding, error) {
@@ -210,6 +224,21 @@ func (r *Registry) newMethod(svc *Service, md *descriptorpb.MethodDescriptorProt
 	}
 
 	return meth, nil
+}
+
+func extractRoleOptions(meth *descriptorpb.MethodDescriptorProto) (*myoptions.Role, error) {
+	if meth.Options == nil {
+		return nil, nil
+	}
+	if !proto.HasExtension(meth.Options, myoptions.E_Role) {
+		return nil, nil
+	}
+	ext := proto.GetExtension(meth.Options, myoptions.E_Role)
+	role, ok := ext.(*myoptions.Role)
+	if !ok {
+		return nil, fmt.Errorf("extension is %T; want a Role", ext)
+	}
+	return role, nil
 }
 
 func extractAPIOptions(meth *descriptorpb.MethodDescriptorProto) (*options.HttpRule, error) {

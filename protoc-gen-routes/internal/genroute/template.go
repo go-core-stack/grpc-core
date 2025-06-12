@@ -92,10 +92,23 @@ var Routes{{$svc.GetName}} = []*model.Route{}
 {{end}}
 
 func init() {
-{{range $svc := .Services}}
-{{range $m := $svc.Methods}}
-	{{ $b := (index $m.Bindings 0) }}Routes{{$svc.GetName}} = append(Routes{{$svc.GetName}}, model.NewRoute("{{ $b.PathTmpl.Template }}", {{$b.HTTPMethod | printf "%q"}}))
-{{end}}
-{{end}}
+	var route *model.Route
+{{- range $svc := .Services}}
+{{- range $m := $svc.Methods}}
+{{- range $b := $m.Bindings}}
+
+	// Adding Route information for {{$m.Name}} RPC
+	route = model.NewRoute("{{ $b.PathTmpl.Template }}", {{$b.HTTPMethod | printf "%q"}})
+	{{- if $m.Role }}
+	route.Resource = "{{$m.Role.Resource}}"
+	{{- range $scope := $m.Role.Scopes}}
+	route.Scopes = append(route.Scopes, "{{$scope}}")
+	{{- end}}
+	route.Verb = "{{$m.Role.Verb}}"
+	{{- end}}
+	Routes{{$svc.GetName}} = append(Routes{{$svc.GetName}}, route)
+{{- end}}
+{{- end}}
+{{- end}}
 }`))
 )

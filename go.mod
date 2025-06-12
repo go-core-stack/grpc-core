@@ -3,7 +3,7 @@ module github.com/go-core-stack/grpc-core
 go 1.24
 
 require (
-	github.com/go-core-stack/auth v0.0.0-20250603104511-c645449f9be9
+	github.com/go-core-stack/auth v0.0.0-20250612050832-47f4e161ef76
 	github.com/google/go-cmp v0.7.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3
 	golang.org/x/text v0.25.0
