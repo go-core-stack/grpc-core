@@ -208,6 +208,7 @@ type Method struct {
 	// ResponseType is the message type of responses from this method.
 	ResponseType *Message
 	Bindings     []*Binding
+	Role         *Role
 }
 
 // FQMN returns a fully qualified rpc method name of this method.
@@ -216,6 +217,16 @@ func (m *Method) FQMN() string {
 	components = append(components, m.Service.FQSN())
 	components = append(components, m.GetName())
 	return strings.Join(components, ".")
+}
+
+type Role struct {
+	// Method is the method which the endpoint is bound to.
+	Method *Method
+	// Index is a zero-origin index of the binding in the target method
+	Index    int
+	Resource string
+	Scopes   []string
+	Verb     string
 }
 
 // Binding describes how an HTTP endpoint is bound to a gRPC method.

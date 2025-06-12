@@ -5,6 +5,7 @@ syntax = "proto3";
 
 package example;
 
+import "coreapis/api/role.proto";
 import "google/api/annotations.proto";
 
 option go_package = "github.com/Prabhjot-Sethi/grpc-core/internal/example";
@@ -15,6 +16,12 @@ service HelloWorld {
     option (google.api.http) = {
       post: "/v1/object/{name}"
       body: "*"
+    };
+    option (api.role) = {
+      resource: "object"
+      scope: "abc"
+      scope: "def"
+      verb: "create"
     };
   }
 }
