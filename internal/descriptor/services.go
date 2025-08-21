@@ -3,6 +3,7 @@ package descriptor
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 
 	options "google.golang.org/genproto/googleapis/api/annotations"
@@ -13,6 +14,20 @@ import (
 	myoptions "github.com/go-core-stack/grpc-core/coreapis/api"
 	"github.com/go-core-stack/grpc-core/internal/httprule"
 )
+
+// Regular expression to validate kebab-case format
+var kebabCaseRegex = regexp.MustCompile(`^[a-z][a-z0-9]*(-[a-z0-9]+)*$`)
+
+// validateKebabCase checks if a string is in valid kebab-case format
+func validateKebabCase(field, value string) error {
+	if value == "" {
+		return nil // Empty values are allowed
+	}
+	if !kebabCaseRegex.MatchString(value) {
+		return fmt.Errorf("field '%s' with value '%s' is not in kebab-case format", field, value)
+	}
+	return nil
+}
 
 // loadServices registers services and their methods from "targetFile" to "r".
 // It must be called after loadFile is called for all files so that loadServices
@@ -238,6 +253,20 @@ func extractRoleOptions(meth *descriptorpb.MethodDescriptorProto) (*myoptions.Ro
 	if !ok {
 		return nil, fmt.Errorf("extension is %T; want a Role", ext)
 	}
+
+	// Validate Role fields for kebab-case format
+	if err := validateKebabCase("resource", role.Resource); err != nil {
+		return nil, fmt.Errorf("invalid role in method %s: %w", meth.GetName(), err)
+	}
+	if err := validateKebabCase("verb", role.Verb); err != nil {
+		return nil, fmt.Errorf("invalid role in method %s: %w", meth.GetName(), err)
+	}
+	for i, scope := range role.Scope {
+		if err := validateKebabCase(fmt.Sprintf("scope[%d]", i), scope); err != nil {
+			return nil, fmt.Errorf("invalid role in method %s: %w", meth.GetName(), err)
+		}
+	}
+
 	return role, nil
 }
 
