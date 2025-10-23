@@ -10,7 +10,7 @@ var RoutesHelloWorld = []*model.Route{}
 func init() {
 	var route *model.Route
 
-	// Adding Route information for PostObject
+	// Adding Route information for PostObject RPC
 	route = model.NewRoute("/v1/object/{name}", "POST")
 	route.Resource = "object"
 	route.Scopes = append(route.Scopes, "abc")

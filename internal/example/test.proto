@@ -12,6 +12,8 @@ option go_package = "github.com/Prabhjot-Sethi/grpc-core/internal/example";
 
 service HelloWorld {
   // sample post request
+  // comment line 1
+  // comment line 2
   rpc PostObject(PostRequest) returns (PostResponse) {
     option (google.api.http) = {
       post: "/v1/object/{name}"
