@@ -4,6 +4,7 @@
 package example
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"

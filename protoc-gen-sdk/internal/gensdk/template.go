@@ -85,6 +85,9 @@ func getImports(services []*descriptor.Service) []string {
 			if hasQueryParams(m) {
 				importMap["net/url"] = true
 			}
+			if b.Body != nil {
+				importMap["bytes"] = true
+			}
 		}
 	}
 
@@ -97,6 +100,11 @@ func getImports(services []*descriptor.Service) []string {
 	if ok {
 		imports = append(imports, "net/url")
 		imports = append(imports, "fmt")
+	}
+
+	_, ok = importMap["bytes"]
+	if ok {
+		imports = append(imports, "bytes")
 	}
 
 	return imports
