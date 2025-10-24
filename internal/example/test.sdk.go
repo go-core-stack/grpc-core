@@ -24,6 +24,9 @@ type HelloWorldService interface {
 	// comment line 1
 	// comment line 2
 	PostObject(ctx context.Context, req *PostRequest) (*PostResponse, error)
+	// sample get request
+	// comment line 1
+	GetObject(ctx context.Context, req *PostRequest) (*PostResponse, error)
 }
 
 type implHelloWorldService struct {
@@ -53,6 +56,54 @@ func (s *implHelloWorldService) PostObject(ctx context.Context, req *PostRequest
 	if err != nil {
 		return nil, fmt.Errorf("failed create request: %s", err)
 	}
+
+	r.Header.Set("Content-Type", "application/json")
+	resp, err := s.client.Do(r)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		if resp.Body != nil {
+			_ = resp.Body.Close()
+		}
+	}()
+	outBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	out := &PostResponse{}
+	err = marshaller.Unmarshal(outBytes, out)
+	if err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
+func (s *implHelloWorldService) GetObject(ctx context.Context, req *PostRequest) (*PostResponse, error) {
+	uri := "/v1/object/{name}"
+	// ensure replacing the variables in the uri before triggering client
+	uri = strings.Replace(uri, "{"+"name"+"}", url.PathEscape(fmt.Sprintf("%v", req.Name)), -1)
+
+	// use marshaller for grpc Gateway since we are working protobuf files
+	marshaller := &runtime.JSONPb{}
+
+	r, err := http.NewRequestWithContext(ctx, "GET", uri, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed create request: %s", err)
+	}
+	q := url.Values{}
+	q.Add("desc", fmt.Sprintf("%v", req.GetDesc()))
+	if req.Test != nil {
+		q.Add("test", fmt.Sprintf("%v", req.GetTest()))
+	}
+	r.URL.RawQuery = q.Encode()
 
 	r.Header.Set("Content-Type", "application/json")
 	resp, err := s.client.Do(r)

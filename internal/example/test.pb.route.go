@@ -17,4 +17,12 @@ func init() {
 	route.Scopes = append(route.Scopes, "def")
 	route.Verb = "create"
 	RoutesHelloWorld = append(RoutesHelloWorld, route)
+
+	// Adding Route information for GetObject RPC
+	route = model.NewRoute("/v1/object/{name}", "GET")
+	route.Resource = "object"
+	route.Scopes = append(route.Scopes, "abc")
+	route.Scopes = append(route.Scopes, "def")
+	route.Verb = "get"
+	RoutesHelloWorld = append(RoutesHelloWorld, route)
 }

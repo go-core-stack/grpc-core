@@ -31,7 +31,9 @@ type PostRequest struct {
 	// name of the object
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// description of the object
-	Desc          string `protobuf:"bytes,2,opt,name=desc,proto3" json:"desc,omitempty"`
+	Desc string `protobuf:"bytes,2,opt,name=desc,proto3" json:"desc,omitempty"`
+	// optional test parameter
+	Test          *bool `protobuf:"varint,3,opt,name=test,proto3,oneof" json:"test,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -78,6 +80,13 @@ func (x *PostRequest) GetDesc() string {
 		return x.Desc
 	}
 	return ""
+}
+
+func (x *PostRequest) GetTest() bool {
+	if x != nil && x.Test != nil {
+		return *x.Test
+	}
+	return false
 }
 
 type PostResponse struct {
@@ -139,18 +148,22 @@ var File_test_proto protoreflect.FileDescriptor
 const file_test_proto_rawDesc = "" +
 	"\n" +
 	"\n" +
-	"test.proto\x12\aexample\x1a\x17coreapis/api/role.proto\x1a\x1cgoogle/api/annotations.proto\"5\n" +
+	"test.proto\x12\aexample\x1a\x17coreapis/api/role.proto\x1a\x1cgoogle/api/annotations.proto\"W\n" +
 	"\vPostRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
-	"\x04desc\x18\x02 \x01(\tR\x04desc\"6\n" +
+	"\x04desc\x18\x02 \x01(\tR\x04desc\x12\x17\n" +
+	"\x04test\x18\x03 \x01(\bH\x00R\x04test\x88\x01\x01B\a\n" +
+	"\x05_test\"6\n" +
 	"\fPostResponse\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
-	"\x04desc\x18\x02 \x01(\tR\x04desc2\x83\x01\n" +
+	"\x04desc\x18\x02 \x01(\tR\x04desc2\xf3\x01\n" +
 	"\n" +
 	"HelloWorld\x12u\n" +
 	"\n" +
 	"PostObject\x12\x14.example.PostRequest\x1a\x15.example.PostResponse\":\x8a\xb5\x18\x1a\n" +
-	"\x06object\x12\x03abc\x12\x03def\x1a\x06create\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/v1/object/{name}B6Z4github.com/Prabhjot-Sethi/grpc-core/internal/exampleb\x06proto3"
+	"\x06object\x12\x03abc\x12\x03def\x1a\x06create\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/v1/object/{name}\x12n\n" +
+	"\tGetObject\x12\x14.example.PostRequest\x1a\x15.example.PostResponse\"4\x8a\xb5\x18\x17\n" +
+	"\x06object\x12\x03abc\x12\x03def\x1a\x03get\x82\xd3\xe4\x93\x02\x13\x12\x11/v1/object/{name}B6Z4github.com/Prabhjot-Sethi/grpc-core/internal/exampleb\x06proto3"
 
 var (
 	file_test_proto_rawDescOnce sync.Once
@@ -171,9 +184,11 @@ var file_test_proto_goTypes = []any{
 }
 var file_test_proto_depIdxs = []int32{
 	0, // 0: example.HelloWorld.PostObject:input_type -> example.PostRequest
-	1, // 1: example.HelloWorld.PostObject:output_type -> example.PostResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
+	0, // 1: example.HelloWorld.GetObject:input_type -> example.PostRequest
+	1, // 2: example.HelloWorld.PostObject:output_type -> example.PostResponse
+	1, // 3: example.HelloWorld.GetObject:output_type -> example.PostResponse
+	2, // [2:4] is the sub-list for method output_type
+	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -184,6 +199,7 @@ func file_test_proto_init() {
 	if File_test_proto != nil {
 		return
 	}
+	file_test_proto_msgTypes[0].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

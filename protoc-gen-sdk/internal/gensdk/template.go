@@ -159,8 +159,13 @@ func hasQueryParams(m *descriptor.Method) bool {
 	return false
 }
 
-func getQueryParams(m descriptor.Method) []string {
-	list := []string{}
+type queryParam struct {
+	Name     string
+	Optional bool
+}
+
+func getQueryParams(m descriptor.Method) []queryParam {
+	list := []queryParam{}
 	if len(m.Bindings) == 0 {
 		return list
 	}
@@ -199,7 +204,10 @@ func getQueryParams(m descriptor.Method) []string {
 		val := f.GetName()
 		_, ok := fields[val]
 		if ok {
-			list = append(list, val)
+			list = append(list, queryParam{
+				Name:     val,
+				Optional: f.GetProto3Optional(),
+			})
 		}
 	}
 
@@ -340,7 +348,13 @@ func (s *impl{{$svc.GetName}}Service) {{$m.GetName}}(ctx context.Context, req *{
 	{{- if $qList }}
 	q := url.Values{}
 	{{- range $q := $qList }}
-	q.Add("{{ $q }}", fmt.Sprintf("%v", req.{{GetCamelCasing $q }}))
+	{{- if $q.Optional }}
+	if req.{{GetCamelCasing $q.Name }} != nil {
+		q.Add("{{ $q.Name }}", fmt.Sprintf("%v", req.Get{{GetCamelCasing $q.Name }}()))
+	}
+	{{- else }}
+	q.Add("{{ $q.Name }}", fmt.Sprintf("%v", req.Get{{GetCamelCasing $q.Name }}()))
+	{{- end }}
 	{{- end }}
 	r.URL.RawQuery = q.Encode()
 	{{- end }}

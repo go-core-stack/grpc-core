@@ -26,6 +26,20 @@ service HelloWorld {
       verb: "create"
     };
   }
+
+  // sample get request
+  // comment line 1
+  rpc GetObject(PostRequest) returns (PostResponse) {
+    option (google.api.http) = {
+      get: "/v1/object/{name}"
+    };
+    option (api.role) = {
+      resource: "object"
+      scope: "abc"
+      scope: "def"
+      verb: "get"
+    };
+  }
 }
 
 message PostRequest {
@@ -34,6 +48,9 @@ message PostRequest {
 
   // description of the object
   string desc = 2;
+
+  // optional test parameter
+  optional bool test = 3;
 }
 
 message PostResponse {
