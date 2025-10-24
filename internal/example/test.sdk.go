@@ -49,7 +49,10 @@ func (s *implHelloWorldService) PostObject(ctx context.Context, req *PostRequest
 	marshaller := &runtime.JSONPb{}
 
 	inData, _ := marshaller.Marshal(req)
-	r, _ := http.NewRequestWithContext(ctx, "POST", uri, bytes.NewBuffer(inData))
+	r, err := http.NewRequestWithContext(ctx, "POST", uri, bytes.NewBuffer(inData))
+	if err != nil {
+		return nil, fmt.Errorf("failed create request: %s", err)
+	}
 
 	r.Header.Set("Content-Type", "application/json")
 	resp, err := s.client.Do(r)
@@ -65,6 +68,10 @@ func (s *implHelloWorldService) PostObject(ctx context.Context, req *PostRequest
 	outBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
 	out := &PostResponse{}

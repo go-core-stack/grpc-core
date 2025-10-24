@@ -113,6 +113,9 @@ func main() {
 		}
 
 		files, err := generator.Generate(targets)
+		if err != nil {
+			return err
+		}
 		for _, f := range files {
 			if grpclog.V(1) {
 				grpclog.Infof("NewGeneratedFile %q in %s", f.GetName(), f.GoPkg)
@@ -128,7 +131,7 @@ func main() {
 			grpclog.Info("Processed code generator request")
 		}
 
-		return err
+		return nil
 	})
 }
 

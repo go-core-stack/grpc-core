@@ -70,7 +70,7 @@ func equalPath(a, b []int32) bool {
 }
 
 func getImports(services []*descriptor.Service) []string {
-	imports := []string{"context", "io", "net/http"}
+	imports := []string{"context", "fmt", "io", "net/http"}
 	importMap := map[string]bool{}
 	for _, s := range services {
 		for _, m := range s.Methods {
@@ -99,7 +99,6 @@ func getImports(services []*descriptor.Service) []string {
 	_, ok = importMap["net/url"]
 	if ok {
 		imports = append(imports, "net/url")
-		imports = append(imports, "fmt")
 	}
 
 	_, ok = importMap["bytes"]
@@ -329,16 +328,19 @@ func (s *impl{{$svc.GetName}}Service) {{$m.GetName}}(ctx context.Context, req *{
 	marshaller := &runtime.JSONPb{}
 	{{ if $b.Body }}
 	inData, _ := marshaller.Marshal(req)
-	r, _ := http.NewRequestWithContext(ctx, {{ $b.HTTPMethod | printf "%q" }}, uri, bytes.NewBuffer(inData))
+	r, err := http.NewRequestWithContext(ctx, {{ $b.HTTPMethod | printf "%q" }}, uri, bytes.NewBuffer(inData))
 	{{- else }}
-	r, _ := http.NewRequestWithContext(ctx, {{ $b.HTTPMethod | printf "%q" }}, uri, nil)
+	r, err := http.NewRequestWithContext(ctx, {{ $b.HTTPMethod | printf "%q" }}, uri, nil)
 	{{- end }}
+	if err != nil {
+		return nil, fmt.Errorf("failed create request: %s", err) 
+	}
 
 	{{- $qList := GetQueryParams $m }}
 	{{- if $qList }}
 	q := url.Values{}
 	{{- range $q := $qList }}
-	q.Add("{{ $q }}", url.QueryEscape(fmt.Sprintf("%v", req.{{GetCamelCasing $q }})))
+	q.Add("{{ $q }}", fmt.Sprintf("%v", req.{{GetCamelCasing $q }}))
 	{{- end }}
 	r.URL.RawQuery = q.Encode()
 	{{- end }}
@@ -357,6 +359,10 @@ func (s *impl{{$svc.GetName}}Service) {{$m.GetName}}(ctx context.Context, req *{
 	outBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
 	out := &{{ $m.ResponseType.GetName }}{}
